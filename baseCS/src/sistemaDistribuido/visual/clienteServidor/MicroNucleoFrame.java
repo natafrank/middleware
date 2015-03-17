@@ -98,8 +98,13 @@ public class MicroNucleoFrame extends Frame implements WindowListener,Escribano,
 			if (com.equals("Cliente")){
 				levantarProcesoFrame(new ClienteFrame(MicroNucleoFrame.this));
 			}
-			else if (com.equals("Servidor")){
-				levantarProcesoFrame(new ServidorFrame(MicroNucleoFrame.this));
+			else if (com.equals("Iniciar Servidor")){
+				//Check if user has selected a server.
+				String selectedServer = panelBotones.getChoiceServe().getSelectedItem();
+				if(!selectedServer.equals("Choose a server"))
+				{
+					levantarProcesoFrame(new ServidorFrame(MicroNucleoFrame.this, selectedServer));
+				}
 			}
 		}
 	}

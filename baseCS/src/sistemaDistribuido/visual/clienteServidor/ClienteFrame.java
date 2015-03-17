@@ -1,31 +1,37 @@
 package sistemaDistribuido.visual.clienteServidor;
 
-import sistemaDistribuido.sistema.clienteServidor.modoMonitor.Nucleo;
-import sistemaDistribuido.sistema.clienteServidor.modoUsuario.ProcesoCliente;
-import sistemaDistribuido.visual.clienteServidor.MicroNucleoFrame;
-import sistemaDistribuido.visual.clienteServidor.ProcesoFrame;
-
-import java.awt.Label;
-import java.awt.TextField;
-import java.awt.Choice;
 import java.awt.Button;
+import java.awt.Choice;
+import java.awt.Label;
 import java.awt.Panel;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
+import sistemaDistribuido.sistema.clienteServidor.modoMonitor.Nucleo;
+import sistemaDistribuido.sistema.clienteServidor.modoUsuario.FileServerOperationManager;
+import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageCreator;
+import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageCreatorClient;
+import sistemaDistribuido.sistema.clienteServidor.modoUsuario.ProcesoCliente;
+import sistemaDistribuido.sistema.clienteServidor.modoUsuario.ServerOperationManager;
+
 public class ClienteFrame extends ProcesoFrame{
 	private static final long serialVersionUID=1;
-	private final static int HEIGHT = 400;
-	private final static int WIDTH  = 1000;
+	private final static int HEIGHT = 500;
+	private final static int WIDTH  = 700;
+	
+	//Control variables.
 	private ProcesoCliente proc;
-	private Choice codigosOperacion;
-	private Choice campoMensaje1, campoMensaje2;
-	private Button botonSolicitud;
-	private String codop1,codop2,codop3,codop4;
-	private String opcion1, opcion2;
-
+	private ServerOperationManager serverOperationManager;
+	private String[] operations;
+	
+	//Components.
+	private Choice choiceServer;
+	private Choice choiceOperation;
+	private Choice choiceParameter1, choiceParameter2;
+	private Button btnSolicitude;
+	
 	public ClienteFrame(MicroNucleoFrame frameNucleo){
 		super(frameNucleo,"Cliente de Archivos");
 		add("South",construirPanelSolicitud());
@@ -36,57 +42,122 @@ public class ClienteFrame extends ProcesoFrame{
 
 	public Panel construirPanelSolicitud(){
 		Panel p=new Panel();
-		codigosOperacion=new Choice();
-		codop1="Crear";
-		codop2="Eliminar";
-		codop3="Leer";
-		codop4="Escribir";
-		codigosOperacion.add(codop1);
-		codigosOperacion.add(codop2);
-		codigosOperacion.add(codop3);
-		codigosOperacion.add(codop4);
-		campoMensaje1=new Choice();
-		opcion1 = "hola.txt";
-		opcion2 = "prueba.txt";
-		campoMensaje1.add(opcion1);
-		campoMensaje1.add(opcion2);
-		campoMensaje2 = new Choice();
-		campoMensaje2.setVisible(false);
-		botonSolicitud=new Button("Solicitar");
-		botonSolicitud.addActionListener(new ManejadorSolicitud());	
-		p.add(new Label("Operacion:"));
-		p.add(codigosOperacion);
-		p.add(new Label("Datos:"));
-		p.add(campoMensaje1);
-		p.add(campoMensaje2);
-		p.add(botonSolicitud);
+		choiceServer = new Choice();
+		//Add the servers to choice.
+	    for(int i = 0; i < ServerOperationManager.SERVERS.length; i++)
+	    {
+	   	 	choiceServer.add(ServerOperationManager.SERVERS[i]);
+	    }
+	     
+	    //Create components.
+	    choiceOperation  = new Choice();
+		choiceParameter1 = new Choice();
+		choiceParameter2 = new Choice();
+		btnSolicitude    = new Button("Solicitar");
+		btnSolicitude.addActionListener(new ManejadorSolicitud());
+		choiceOperation.setVisible(false);
+		choiceParameter1.setVisible(false);
+		choiceParameter2.setVisible(false);
+		btnSolicitude.setEnabled(false);
+		
+		//Add components to panel.
+		p.add(choiceServer);
+		p.add(new Label("Operation:"));
+		p.add(choiceOperation);
+		p.add(new Label("Data:"));
+		p.add(choiceParameter1);
+		p.add(choiceParameter2);
+		p.add(btnSolicitude);
+		
+		//Listener after select a server.
+		choiceServer.addItemListener(new ItemListener()
+		{
+			@Override
+			public void itemStateChanged(ItemEvent e)
+			{
+				String selectedServer = choiceServer.getSelectedItem();
+				
+				if(!selectedServer.equals("Choose a server"))
+				{
+					if(selectedServer.equals("File Server"))
+					{
+						serverOperationManager = new FileServerOperationManager(
+								MessageCreator.ID_FILE_SERVER);
+					}
+					
+					//Clean and load the operations available for the server.
+					choiceOperation.removeAll();
+					operations = serverOperationManager.getOperations();
+					for(int i =0; i < operations.length; i++)
+					{
+						choiceOperation.add(operations[i]);
+					}
+					//Set the choice operation visible and remove the option "Choose a server"
+					//from the choice server.
+					choiceOperation.setVisible(true);
+					setSize(WIDTH, HEIGHT);
+				}
+			}
+		});
 		
 		//Listener Choice.
-		codigosOperacion.addItemListener(new ItemListener()
+		choiceOperation.addItemListener(new ItemListener()
 		{
 			
 			@Override
 			public void itemStateChanged(ItemEvent e)
 			{
-				if(codigosOperacion.getSelectedItem().equals("Escribir"))
+				String operation = choiceOperation.getSelectedItem();
+				
+				if(!operation.equals("Choose an operation"))
 				{
-					campoMensaje2.setVisible(true);
-					campoMensaje2.removeAll();
-					campoMensaje2.add("Texto de prueba para archivos.");
-					campoMensaje2.add("Otro mensaje para escribir dentro de un archivo.");
-					setSize(WIDTH, HEIGHT);
-				}
-				else if(codigosOperacion.getSelectedItem().equals("Leer"))
-				{
-					campoMensaje2.setVisible(true);
-					campoMensaje2.removeAll();
-					campoMensaje2.add("5");
-					campoMensaje2.add("10");
-					setSize(WIDTH - 200, HEIGHT);
-				}
-				else
-				{
-					campoMensaje2.setVisible(false);
+					serverOperationManager.setSelectedOperation(operation);
+					if(serverOperationManager.hasParametersEnabled())
+					{
+						//Check parameter1.
+						if(serverOperationManager.isParameter1Enabled())
+						{
+							choiceParameter1.removeAll();
+							String[] firstParameters = serverOperationManager.getFirstParameters();
+							for(int i = 0; i < firstParameters.length; i++)
+							{
+								choiceParameter1.add(firstParameters[i]);
+							}
+							choiceParameter1.setVisible(true);
+							setSize(WIDTH + 200, HEIGHT + 100);
+							
+							//Check parameter2.
+							if(serverOperationManager.isParameter2Enabled())
+							{
+								choiceParameter2.removeAll();
+								String[] secondParameters = serverOperationManager
+										.getSecondParameters();
+								for(int i = 0; i < secondParameters.length; i++)
+								{
+									choiceParameter2.add(secondParameters[i]);
+								}
+								choiceParameter2.setVisible(true);
+								setSize(WIDTH + 300, HEIGHT + 200);
+							}
+							else
+							{
+								choiceParameter2.setVisible(false);
+							}
+						}
+						else
+						{
+							choiceParameter1.setVisible(false);
+							setSize(WIDTH, HEIGHT);
+						}
+					}
+					else
+					{
+						choiceParameter1.setVisible(false);
+						choiceParameter2.setVisible(false);
+						setSize(WIDTH, HEIGHT);
+					}
+					
+					btnSolicitude.setEnabled(true);
 				}
 			}
 		});
@@ -98,12 +169,41 @@ public class ClienteFrame extends ProcesoFrame{
 		public void actionPerformed(ActionEvent e) {
 			String com=e.getActionCommand();
 			if (com.equals("Solicitar")){
-				botonSolicitud.setEnabled(false);
-				com=codigosOperacion.getSelectedItem();
+				btnSolicitude.setEnabled(false);
+				com=choiceOperation.getSelectedItem();
 				imprimeln("Solicitud a enviar: "+com);
-				imprimeln("Mensaje a enviar: "+campoMensaje1.getSelectedItem());
+				imprimeln("Mensaje a enviar: "+choiceParameter1.getSelectedItem());
 				//proc.
-				Nucleo.reanudarProceso(proc);
+				
+				//Set the message.
+				MessageCreatorClient messageCreatorClient = new MessageCreatorClient(Integer
+						.parseInt(dameIdProceso()), serverOperationManager.getIdServer(), 
+						(short)choiceOperation.getSelectedIndex(), "Datos de prueba");
+				
+				//Create and check Mesasge.
+				int messageCreationResult = messageCreatorClient.createMessage();
+				if(messageCreationResult >= 0)
+				{
+					//Message created successfully.
+					//Set the message to the process ready to send.
+					proc.setMessage(messageCreatorClient.getMessage());
+					proc.setMessageCreatorClient(messageCreatorClient);
+					
+					//Resume the process.
+					Nucleo.reanudarProceso(proc);
+				}
+				else
+				{
+					//Error while creating message.
+					switch(messageCreationResult)
+					{
+						case MessageCreator.ERROR_MESSAGE_TOO_LONG:
+						{
+							imprimeln(MessageCreator.UIM_ERROR_MESSAGE_TOO_LONG);
+							break;
+						}
+					}
+				}
 			}
 		}
 	}

@@ -8,15 +8,26 @@ import sistemaDistribuido.util.Escribano;
  * 
  */
 public class ProcesoCliente extends Proceso{
-
-	private static final int TAMANO_MENSAJE = 1024;
 	
+	private MessageCreatorClient messageCreatorClient;
+	private byte[] message;
+
 	/**
 	 * 
 	 */
 	public ProcesoCliente(Escribano esc){
 		super(esc);
 		start();
+	}
+	
+	public void setMessage(byte[] message)
+	{
+		this.message = message;
+	}
+	
+	public void setMessageCreatorClient(MessageCreatorClient mcc)
+	{
+		messageCreatorClient = mcc;
 	}
 
 	/**
@@ -26,14 +37,12 @@ public class ProcesoCliente extends Proceso{
 		imprimeln("Proceso cliente en ejecucion.");
 		imprimeln("Esperando datos para continuar.");
 		Nucleo.suspenderProceso();
-		imprimeln("Hola =)");
-		byte[] solCliente=new byte[TAMANO_MENSAJE];
-		byte[] respCliente=new byte[TAMANO_MENSAJE];
-		byte dato;
-		solCliente[0]=(byte)10;
-		Nucleo.send(248,solCliente);
-		Nucleo.receive(dameID(),respCliente);
-		dato=respCliente[0];
-		imprimeln("el servidor me envi� un "+dato);
+		
+		//byte[] respCliente=new byte[MessageCreator.MESSAGE_MAX_SIZE];
+
+		//Send the message
+		Nucleo.send(messageCreatorClient.getIdServer(),message);
+		Nucleo.receive(248,message);
+		imprimeln("el servidor me envi� un " + new String(message));
 	}
 }

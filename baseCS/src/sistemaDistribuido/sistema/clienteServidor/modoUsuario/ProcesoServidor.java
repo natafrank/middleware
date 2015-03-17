@@ -10,11 +10,13 @@ import sistemaDistribuido.util.Pausador;
  */
 public class ProcesoServidor extends Proceso{
 
+	private String name;
 	/**
 	 * 
 	 */
-	public ProcesoServidor(Escribano esc){
+	public ProcesoServidor(Escribano esc, String name){
 		super(esc);
+		this.name = name;
 		start();
 	}
 
@@ -23,18 +25,19 @@ public class ProcesoServidor extends Proceso{
 	 */
 	public void run(){
 		imprimeln("Proceso servidor en ejecucion.");
-		byte[] solServidor=new byte[20];
+		byte[] solServidor = new byte[MessageCreator.MESSAGE_MAX_SIZE];
 		byte[] respServidor;
 		byte dato;
-		while(continuar()){
-			Nucleo.receive(dameID(),solServidor);
-			dato=solServidor[0];
-			imprimeln("el cliente envió un "+dato);
-			respServidor=new byte[20];
-			respServidor[0]=(byte)(dato*dato);
+		while(continuar())
+		{
+			//We need to send the id of the server we start.
+			int idServer = MessageCreator.getIdServerByName(name);
+			Nucleo.receive(idServer,solServidor);
+			
+			imprimeln("el cliente envió un " + new String(solServidor));
 			Pausador.pausa(1000);  //sin esta línea es posible que Servidor solicite send antes que Cliente solicite receive
 			imprimeln("enviando respuesta");
-			Nucleo.send(0,respServidor);
+			Nucleo.send(dameID(), "Esta es mi respuesta".getBytes());
 		}
 	}
 }
