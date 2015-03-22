@@ -12,18 +12,22 @@ public class MessageCreatorClient extends MessageCreator
 	
 	private short operationCode;
 	private short dataSize;
+	private String extraData;
+	private boolean extraDataOnMessage;
 	
 	public MessageCreatorClient(int idClient, int idServer, short operationCode, String data)
 	{
 		super(idClient, idServer, data);
 		this.operationCode = operationCode;
 		dataSize = (short) dataBytes.length;
+		extraDataOnMessage = false;
 	}
 
 	public int createMessage()
 	{
 		//Check if data size doesn't overflow.
-		if(dataBytes.length > DATA_MAX_SIZE)
+		if(dataBytes.length > DATA_MAX_SIZE || hasExtraDataOnMessage() 
+				&& (dataBytes.length + extraData.getBytes().length) > DATA_MAX_SIZE)
 		{
 			//Error, data message too long.
 			return ERROR_MESSAGE_TOO_LONG;
@@ -64,6 +68,25 @@ public class MessageCreatorClient extends MessageCreator
 			//Get data.
 			System.arraycopy(dataBytes, 0, message, MESSAGE_INDEX_DATA, dataBytes.length);
 			
+			//Trigger to add exra data.
+			if(hasExtraDataOnMessage())
+			{
+				byte[] extraDataBytes = extraData.getBytes();
+				int messageIndexExtraDataSize = MESSAGE_INDEX_DATA + dataBytes.length + 1;
+				int messageIndexExtraData = messageIndexExtraDataSize + 2;
+				short extraDataSize = (short) extraDataBytes.length;
+				
+				//Get extra data size.
+				for(i = 0; i < SHORT_BYTE_SIZE; i++)
+				{
+					aux[(i-1)*-1] = (byte)(extraDataSize >>> (i * 8));
+				}
+				System.arraycopy(aux, 0, message, messageIndexExtraDataSize, SHORT_BYTE_SIZE);
+				
+				//Get extra data.
+				System.arraycopy(extraDataBytes, 0, message, messageIndexExtraData, extraDataBytes.length);
+			}
+			
 			//Return success.
 			return MESSAGE_SUCCESSFULLY_CREATED;
 		}
@@ -77,5 +100,21 @@ public class MessageCreatorClient extends MessageCreator
 	public void setOperationCode(short operationCode) 
 	{
 		this.operationCode = operationCode;
+	}
+	
+	public void setExtraData(String extraData)
+	{
+		this.extraData = extraData;
+		extraDataOnMessage = true;
+	}
+	
+	public String getExtraData()
+	{
+		return extraData;
+	}
+	
+	public boolean hasExtraDataOnMessage()
+	{
+		return extraDataOnMessage;
 	}
 }

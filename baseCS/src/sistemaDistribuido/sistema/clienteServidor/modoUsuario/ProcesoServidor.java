@@ -10,14 +10,19 @@ import sistemaDistribuido.util.Pausador;
  */
 public class ProcesoServidor extends Proceso{
 
-	private String name;
+	private String serverName;
 	/**
 	 * 
 	 */
-	public ProcesoServidor(Escribano esc, String name){
+	public ProcesoServidor(Escribano esc, String serverName){
 		super(esc);
-		this.name = name;
+		this.serverName = serverName;
 		start();
+	}
+	
+	public String getServerName()
+	{
+		return serverName;
 	}
 
 	/**
@@ -31,13 +36,26 @@ public class ProcesoServidor extends Proceso{
 		while(continuar())
 		{
 			//We need to send the id of the server we start.
-			int idServer = MessageCreator.getIdServerByName(name);
+			int idServer = MessageCreator.getIdServerByName(serverName);
 			Nucleo.receive(idServer,solServidor);
 			
-			imprimeln("el cliente envi� un " + new String(solServidor));
-			Pausador.pausa(1000);  //sin esta l�nea es posible que Servidor solicite send antes que Cliente solicite receive
+			//Read the message.
+		//////cambios habrá que destapar el mensaje y darnos cuenta si tiene información extra
+			//una vez este abierto. En base al código de operación, sabremos si tiene información
+			//extra.
+			MessageReaderServer messageReaderServer = new MessageReaderServer(solServidor, true);
+			messageReaderServer.readMessage();
+			
+			imprimeln("el cliente envi� un " + messageReaderServer.getReadableMessage());
+			Pausador.pausa(1000);  //sin esta l�nea es posible que Servidor solicite send antes que Cliente solicite receive
 			imprimeln("enviando respuesta");
-			Nucleo.send(dameID(), "Esta es mi respuesta".getBytes());
+			
+			//Crear respuesta. Abstraer una clase servidor, intanciar el servidor necesario,
+			//Server server = Serger.getServer(idServer);
+			//realizar la tarea con el server y enviar la respuesta.
+			
+			Nucleo.send(idServer, "Respuesta del servidor".getBytes());/////
+			imprimeln("Respuesta enviada");
 		}
 	}
 }

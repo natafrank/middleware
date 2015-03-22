@@ -8,6 +8,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageCreator;
+import sistemaDistribuido.util.Pausador;
 
 /**
  * 
@@ -40,26 +41,56 @@ public final class MicroNucleo extends MicroNucleoBase{
 	byte[] mensaje;
 	
 	public void sendFalso(int dest,byte[] message){
+	
+	}
+
+	public void receiveFalso(int addr,byte[] message)
+	{
+		
+	}
+	/*---------------------------------------------------------*/
+
+	/**
+	 * 
+	 */
+	protected boolean iniciarModulos(){
+		return true;
+	}
+
+	/**
+	 * 
+	 */
+	protected void sendVerdadero(int dest,byte[] message){
+		
+		//lo siguiente aplica para la prï¿½ctica #2
+		ParMaquinaProceso pmp=dameDestinatarioDesdeInterfaz();
+		String ip = pmp.dameIP();
+		imprimeln("Enviando mensaje a IP="+ip+" ID="+pmp.dameID());
+		//suspenderProceso();   //esta invocacion depende de si se requiere bloquear al hilo de control invocador
+		
 		//Package and sent the message.
-		DatagramSocket socket;
+		DatagramSocket socket = null;
 		DatagramPacket packet;
 		InetAddress address;
 
 		try
 		{
 			socket  = new DatagramSocket();
-			address = InetAddress.getByName(MessageCreator.getAddress(dest));
-			message = "ESTE ES MI GRAN MENSAJE".getBytes();
+			
+			//Get the addrerss (ip). take it form the text box or by dest.
+			if(!ip.equals(""))
+			{
+				address = InetAddress.getByName(ip);
+			}
+			else
+			{
+				address = InetAddress.getByName(MessageCreator.getAddress(dest));
+			}
+			
+			imprimeln("mensaje a enviar: " + new String(message));
 			packet  = new DatagramPacket(message, message.length, address, MessageCreator
 					.getPort(dest));
 			socket.send(packet);
-			
-			//Receive answer.
-			//packet = new DatagramPacket(message, message.length);
-			//imprimeln("Recibiendo");
-			//socket.receive(packet);
-			//imprimeln("RECIBIDO");
-			//message = packet.getData();
 			socket.close();
 		}
 		catch (SocketException e)
@@ -77,15 +108,16 @@ public final class MicroNucleo extends MicroNucleoBase{
 			e.printStackTrace();
 			imprimeln(UIM_ERROR_SEND_PACKET);
 		}
-		
-		//notificarHilos();  //Reanuda la ejecucion del proceso que haya invocado a receiveFalso()
 	}
 
-	public void receiveFalso(int addr,byte[] message)
+	/**
+	 * 
+	 */
+	protected void receiveVerdadero(int addr,byte[] message)
 	{
-		DatagramSocket socket;
+		DatagramSocket socket = null;
 		DatagramPacket packet;
-		InetAddress address;
+		
 		//Get the port using the address that is the idServer.
 		int port = MessageCreator.getPort(addr);
 		
@@ -109,39 +141,8 @@ public final class MicroNucleo extends MicroNucleoBase{
 			e.printStackTrace();
 			imprimeln(UIM_ERROR_SEND_PACKET);
 		}
-		
-		//suspenderProceso();
-	}
-	/*---------------------------------------------------------*/
-
-	/**
-	 * 
-	 */
-	protected boolean iniciarModulos(){
-		return true;
-	}
-
-	/**
-	 * 
-	 */
-	protected void sendVerdadero(int dest,byte[] message){
-		sendFalso(dest,message);
-		imprimeln("El proceso invocante es el "+super.dameIdProceso());
-		
-		//lo siguiente aplica para la práctica #2
-		/*ParMaquinaProceso pmp=dameDestinatarioDesdeInterfaz();
-		imprimeln("Enviando mensaje a IP="+pmp.dameIP()+" ID="+pmp.dameID());
-		suspenderProceso();   //esta invocacion depende de si se requiere bloquear al hilo de control invocador
-		*/ 
-	}
-
-	/**
-	 * 
-	 */
-	protected void receiveVerdadero(int addr,byte[] message){
-		receiveFalso(addr,message);
-		//el siguiente aplica para la práctica #2
-		//suspenderProceso();
+		Pausador.pausa(1000);
+		notificarHilos();
 	}
 
 	/**

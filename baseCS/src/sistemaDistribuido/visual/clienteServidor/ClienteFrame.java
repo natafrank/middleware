@@ -58,7 +58,7 @@ public class ClienteFrame extends ProcesoFrame{
 		choiceOperation.setVisible(false);
 		choiceParameter1.setVisible(false);
 		choiceParameter2.setVisible(false);
-		btnSolicitude.setEnabled(false);
+		btnSolicitude.setVisible(false);
 		
 		//Add components to panel.
 		p.add(choiceServer);
@@ -157,7 +157,7 @@ public class ClienteFrame extends ProcesoFrame{
 						setSize(WIDTH, HEIGHT);
 					}
 					
-					btnSolicitude.setEnabled(true);
+					btnSolicitude.setVisible(true);
 				}
 			}
 		});
@@ -172,16 +172,22 @@ public class ClienteFrame extends ProcesoFrame{
 				btnSolicitude.setEnabled(false);
 				com=choiceOperation.getSelectedItem();
 				imprimeln("Solicitud a enviar: "+com);
-				imprimeln("Mensaje a enviar: "+choiceParameter1.getSelectedItem());
 				//proc.
 				
 				//Set the message.
 				MessageCreatorClient messageCreatorClient = new MessageCreatorClient(Integer
 						.parseInt(dameIdProceso()), serverOperationManager.getIdServer(), 
-						(short)choiceOperation.getSelectedIndex(), "Datos de prueba");
+						(short)choiceOperation.getSelectedIndex(), choiceParameter1.getSelectedItem());
+				
+				//Trigger to check if has extra, and send it if it has.
+				if(choiceParameter2.isVisible())
+				{
+					messageCreatorClient.setExtraData(choiceParameter2.getSelectedItem());
+				}
 				
 				//Create and check Mesasge.
 				int messageCreationResult = messageCreatorClient.createMessage();
+				imprimeln("MI Mensaje a enviar: " + new String(messageCreatorClient.getMessage()));
 				if(messageCreationResult >= 0)
 				{
 					//Message created successfully.
@@ -191,6 +197,7 @@ public class ClienteFrame extends ProcesoFrame{
 					
 					//Resume the process.
 					Nucleo.reanudarProceso(proc);
+					btnSolicitude.setEnabled(true);
 				}
 				else
 				{
