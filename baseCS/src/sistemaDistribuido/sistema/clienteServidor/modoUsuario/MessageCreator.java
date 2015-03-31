@@ -1,117 +1,64 @@
 package sistemaDistribuido.sistema.clienteServidor.modoUsuario;
 
-public class MessageCreator
+public abstract class MessageCreator
 {
 	//CONSTANTS.
-	protected final static int MESSAGE_MAX_SIZE = 1024;
-	protected final static int INT_BYTE_SIZE    = 4;
-	protected final static int SHORT_BYTE_SIZE  = 2;
-	
-	//SERVER IDS.
-	public final static int ID_FILE_SERVER = 248;
-	
-	//PORTS.
-	public final static int PORT_FILE_SERVER  = 44555;
-	
-	//ADDRESSESS (IP'S).
-	public final static String IP_FILE_SERVER = "127.0.0.1";//Localhost for this example.
+	public final static int MESSAGE_MAX_SIZE      = 1024;
+	protected final static int INT_BYTE_SIZE      = 4;
+	protected final static int SHORT_BYTE_SIZE    = 2;
+	public final static int MESSAGE_INDEX_ORIGIN  = 0;
+	public final static int MESSAGE_INDEX_DESTINY = 4;
 	
 	//RETURN CODES.
 	public final static int MESSAGE_SUCCESSFULLY_CREATED = 0;
 	public final static int ERROR_MESSAGE_TOO_LONG       = -1;
-	public final static int ERROR_PORT		             = -2;
-	public final static int ERROR_IP					 = -3;
-	public final static int ERROR_ID					 = -4;
-	
+	public final static int ERROR_MESSAGE_CREATION       = -2;
+
 	//UI Messages (UIM).
 	public final static String UIM_ERROR_MESSAGE_TOO_LONG = "Error while creating message "
 			+ "message too long.";
+	public final static String UIM_ERROR_MESSAGE_CREATION = "Error while creating message.";
 	
-	protected int idClient;
-	protected int idServer;
-	protected String data;
-	protected byte[] dataBytes;
 	protected byte[] message = new byte[MESSAGE_MAX_SIZE];
-	
-	public MessageCreator(int idClient, int idServer, String data)
-	{
-		this.idClient = idClient;
-		this.idServer = idServer;
-		this.data = data;
-		dataBytes = data.getBytes();
-	}
-	
-	public static int getPort(int idServer)
-	{
-		switch(idServer)
-		{
-			case ID_FILE_SERVER:
-			{
-				return PORT_FILE_SERVER;
-			}
-		}
-		
-		//If no id matches, return error.
-		return ERROR_PORT;
-	}
-	
-	public static String getAddress(int idServer)
-	{
-		switch(idServer)
-		{
-			case ID_FILE_SERVER:
-			{
-				return IP_FILE_SERVER;
-			}
-		}
-		
-		//If no id matches, return error.
-		return Integer.toString(ERROR_IP);
-	}
-	
-	public static int getIdServerByName(String name)
-	{
-		if(name.equals("File Server"))
-		{
-			return ID_FILE_SERVER;
-		}
-		
-		//If no id matches, return error.
-		return ERROR_ID;
-	}
-	
-	public int getIdClinet()
-	{
-		return idClient;
-	}
-	
-	public int getIdServer()
-	{
-		return idServer;
-	}
 	
 	public byte[] getMessage()
 	{
 		return message;
 	}
 	
-	public void setIdClient(int idClient)
+	public static void setInt(int value, byte[] message, int position)
 	{
-		this.idClient = idClient;
+		byte[] aux = new byte[INT_BYTE_SIZE];
+		for(int i = 0; i < INT_BYTE_SIZE; i++)
+		{
+			aux[(i-3)*-1] = (byte) (value >>> (i * 8));
+		}
+		System.arraycopy(aux, 0, message, position, INT_BYTE_SIZE);
 	}
 	
-	public void setIdServer(int idServer)
+	public static void setShort(short value, byte[] message, int position)
 	{
-		this.idServer = idServer;
+		byte[] aux = new byte[SHORT_BYTE_SIZE];
+		for(int i = 0; i < SHORT_BYTE_SIZE; i++)
+		{
+			aux[(i-1)*-1] = (byte)(value >>> (i * 8)); 
+		}
+		System.arraycopy(aux, 0, message, position, SHORT_BYTE_SIZE);
 	}
 	
-	public String getData() 
+	public static void setString(String value, byte[] message, int position)
 	{
-		return data;
+		byte[] valueBytes = value.getBytes();
+		System.arraycopy(valueBytes, 0, message, position, valueBytes.length);
 	}
-
-	public void setData(String data) 
+	
+	public static void setDestiny(int destiny, byte[] message)
 	{
-		this.data = data;
+		setInt(destiny, message, MESSAGE_INDEX_DESTINY);
+	}
+	
+	public static void setOrigin(int origin, byte[] message)
+	{
+		setInt(origin, message, MESSAGE_INDEX_ORIGIN);
 	}
 }

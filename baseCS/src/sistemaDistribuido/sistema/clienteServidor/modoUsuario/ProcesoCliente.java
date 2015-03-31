@@ -8,9 +8,6 @@ import sistemaDistribuido.util.Escribano;
  * 
  */
 public class ProcesoCliente extends Proceso{
-	
-	private MessageCreatorClient messageCreatorClient;
-	private byte[] message;
 
 	/**
 	 * 
@@ -24,11 +21,6 @@ public class ProcesoCliente extends Proceso{
 	{
 		this.message = message;
 	}
-	
-	public void setMessageCreatorClient(MessageCreatorClient mcc)
-	{
-		messageCreatorClient = mcc;
-	}
 
 	/**
 	 * 
@@ -39,16 +31,17 @@ public class ProcesoCliente extends Proceso{
 			imprimeln("Proceso cliente en ejecucion.");
 			imprimeln("Esperando datos para continuar.");
 			Nucleo.suspenderProceso();
-			
-			byte[] answerClient = new byte[MessageCreator.MESSAGE_MAX_SIZE];
-			int idServerToSend = messageCreatorClient.getIdServer();
+		
 			//Send the message
-			Nucleo.send(idServerToSend,message);
-			Nucleo.suspenderProceso();
-			Nucleo.receive(idServerToSend, answerClient);
-			
+			Nucleo.send(248,message);
+			//Nucleo.suspenderProceso();
+			Nucleo.receive(dameID(), message);
+			MessageReader messageReader = new MessageReader(message);
+			short dataSize = messageReader.readShort(MessageCreatorServer.MESSAGE_INDEX_DATA_SIZE);
+					
 			//Procesar la respuesta.
-			imprimeln("el servidor me envi� un " + new String(answerClient));
+			imprimeln("Answer: " + new String(messageReader.
+					readString(MessageCreatorServer.MESSAGE_INDEX_DATA, dataSize)) + "\n");
 		}
 	}
 }

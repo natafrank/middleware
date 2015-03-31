@@ -3,93 +3,122 @@ package sistemaDistribuido.sistema.clienteServidor.modoUsuario;
 public class MessageCreatorClient extends MessageCreator
 {
 	//CONSTANTS.
-	private final static int DATA_MAX_SIZE                = 1012;
-	private final static int MESSAGE_INDEX_ID_CLIENT      = 0;
-	private final static int MESSAGE_INDEX_ID_SERVER      = 4;
-	private final static int MESSAGE_INDEX_OPERATION_CODE = 8;
-	private final static int MESSAGE_INDEX_DATA_SIZE      = 10;
-	private final static int MESSAGE_INDEX_DATA           = 12;
+	//Data max size Without origin,destiny, opc and filename size.
+	public final static int DATA_MAX_SIZE                = 1012;
+	public final static int MESSAGE_INDEX_OPERATION_CODE = 8;
+	public final static int MESSAGE_INDEX_FILE_NAME_SIZE = 10;
+	public final static int MESSAGE_INDEX_FILE_NAME      = 12;
 	
 	private short operationCode;
-	private short dataSize;
-	private String extraData;
-	private boolean extraDataOnMessage;
+	private String fileName;
+	private short fileNameSize;
+	private int offset;
+	private int length;
+	private String writingText;
+	private short writingTextSize;
 	
-	public MessageCreatorClient(int idClient, int idServer, short operationCode, String data)
+	//Constructor for CREATE and DELETE.
+	public MessageCreatorClient(short operationCode, String fileName)
 	{
-		super(idClient, idServer, data);
 		this.operationCode = operationCode;
-		dataSize = (short) dataBytes.length;
-		extraDataOnMessage = false;
+		this.fileName      = fileName;
+		fileNameSize	   = (short) fileName.length();
+	}
+	
+	//Constructor for READ.
+	public MessageCreatorClient(short operationCode, String fileName, int offset, int length)
+	{
+		this.operationCode = operationCode;
+		this.fileName      = fileName;
+		fileNameSize	   = (short) fileName.length();
+		this.offset		   = offset;
+		this.length		   = length;
+	}
+	
+	//Constructor for WRITE.
+	public MessageCreatorClient(short operationCode, String fileName, String writingText)
+	{
+		this.operationCode = operationCode;
+		this.fileName      = fileName;
+		fileNameSize	   = (short) fileName.length();
+		this.writingText   = writingText;
+		writingTextSize    = (short) writingText.length();
 	}
 
 	public int createMessage()
 	{
-		//Check if data size doesn't overflow.
-		if(dataBytes.length > DATA_MAX_SIZE || hasExtraDataOnMessage() 
-				&& (dataBytes.length + extraData.getBytes().length) > DATA_MAX_SIZE)
+		switch(operationCode)
 		{
-			//Error, data message too long.
-			return ERROR_MESSAGE_TOO_LONG;
-		}
-		else
-		{
-			byte[] aux = new byte[INT_BYTE_SIZE];
-			int i;
-			
-			//Get client id.
-			for(i = 0; i < INT_BYTE_SIZE; i++)
+			case FileServerOperationManager.CREATE:
 			{
-				aux[(i-3)*-1] = (byte) (idClient >>> (i * 8));
-			}
-			System.arraycopy(aux, 0, message, MESSAGE_INDEX_ID_CLIENT, INT_BYTE_SIZE);
-			
-			//Get server id.
-			for(i = 0; i < INT_BYTE_SIZE; i++)
-			{
-				aux[(i-3)*-1] = (byte) (idServer >>> (i * 8));
-			}
-			System.arraycopy(aux, 0, message, MESSAGE_INDEX_ID_SERVER, INT_BYTE_SIZE);
-			
-			//Get the operation code.
-			for(i = 0; i < SHORT_BYTE_SIZE; i++)
-			{
-				aux[(i-1)*-1] = (byte)(operationCode >>> (i * 8)); 
-			}
-			System.arraycopy(aux, 0, message, MESSAGE_INDEX_OPERATION_CODE, SHORT_BYTE_SIZE);
-			
-			//Get data size.
-			for(i = 0; i < SHORT_BYTE_SIZE; i++)
-			{
-				aux[(i-1)*-1] = (byte)(dataSize >>> (i * 8));
-			}
-			System.arraycopy(aux, 0, message, MESSAGE_INDEX_DATA_SIZE, SHORT_BYTE_SIZE);
-			
-			//Get data.
-			System.arraycopy(dataBytes, 0, message, MESSAGE_INDEX_DATA, dataBytes.length);
-			
-			//Trigger to add exra data.
-			if(hasExtraDataOnMessage())
-			{
-				byte[] extraDataBytes = extraData.getBytes();
-				int messageIndexExtraDataSize = MESSAGE_INDEX_DATA + dataBytes.length + 1;
-				int messageIndexExtraData = messageIndexExtraDataSize + 2;
-				short extraDataSize = (short) extraDataBytes.length;
-				
-				//Get extra data size.
-				for(i = 0; i < SHORT_BYTE_SIZE; i++)
+				if(fileNameSize > DATA_MAX_SIZE)
 				{
-					aux[(i-1)*-1] = (byte)(extraDataSize >>> (i * 8));
+					return ERROR_MESSAGE_TOO_LONG;
 				}
-				System.arraycopy(aux, 0, message, messageIndexExtraDataSize, SHORT_BYTE_SIZE);
-				
-				//Get extra data.
-				System.arraycopy(extraDataBytes, 0, message, messageIndexExtraData, extraDataBytes.length);
+				else
+				{
+					setShort(operationCode, message, MESSAGE_INDEX_OPERATION_CODE);
+					setShort(fileNameSize, message, MESSAGE_INDEX_FILE_NAME_SIZE);
+					setString(fileName, message, MESSAGE_INDEX_FILE_NAME);
+					return MESSAGE_SUCCESSFULLY_CREATED;
+				}
 			}
-			
-			//Return success.
-			return MESSAGE_SUCCESSFULLY_CREATED;
+			case FileServerOperationManager.DELETE:
+			{
+				if(fileNameSize > DATA_MAX_SIZE)
+				{
+					return ERROR_MESSAGE_TOO_LONG;
+				}
+				else
+				{
+					setShort(operationCode, message, MESSAGE_INDEX_OPERATION_CODE);
+					setShort(fileNameSize, message, MESSAGE_INDEX_FILE_NAME_SIZE);
+					setString(fileName, message, MESSAGE_INDEX_FILE_NAME);
+					return MESSAGE_SUCCESSFULLY_CREATED;
+				}
+			}
+			case FileServerOperationManager.READ:
+			{
+				final int OFFSET_LENGTH_SIZE = 8;
+				
+				if(fileNameSize + OFFSET_LENGTH_SIZE > DATA_MAX_SIZE)
+				{
+					return ERROR_MESSAGE_TOO_LONG;
+				}
+				else
+				{
+					setShort(operationCode, message, MESSAGE_INDEX_OPERATION_CODE);
+					setShort(fileNameSize, message, MESSAGE_INDEX_FILE_NAME_SIZE);
+					setString(fileName, message, MESSAGE_INDEX_FILE_NAME);
+					int offsetIndex = MESSAGE_INDEX_FILE_NAME + fileNameSize;
+					setInt(offset, message, offsetIndex);
+					setInt(length, message, offsetIndex + 4);
+					return MESSAGE_SUCCESSFULLY_CREATED;
+				}
+			}
+			case FileServerOperationManager.WRITE:
+			{
+				final int WRITING_TEXT_SIZE_SIZE = 2;
+				
+				if(fileNameSize + writingTextSize + WRITING_TEXT_SIZE_SIZE > DATA_MAX_SIZE)
+				{
+					return ERROR_MESSAGE_TOO_LONG;
+				}
+				else
+				{
+					setShort(operationCode, message, MESSAGE_INDEX_OPERATION_CODE);
+					setShort(fileNameSize, message, MESSAGE_INDEX_FILE_NAME_SIZE);
+					setString(fileName, message, MESSAGE_INDEX_FILE_NAME);
+					int writingTextSizeIndex = MESSAGE_INDEX_FILE_NAME + fileNameSize;
+					setShort(writingTextSize, message, writingTextSizeIndex);
+					setString(writingText, message, writingTextSizeIndex + 2);
+					return MESSAGE_SUCCESSFULLY_CREATED;
+				}
+			}
 		}
+		
+		//If no matches, return error.
+		return ERROR_MESSAGE_CREATION;
 	}
 	
 	public short getOperationCode() 
@@ -100,21 +129,5 @@ public class MessageCreatorClient extends MessageCreator
 	public void setOperationCode(short operationCode) 
 	{
 		this.operationCode = operationCode;
-	}
-	
-	public void setExtraData(String extraData)
-	{
-		this.extraData = extraData;
-		extraDataOnMessage = true;
-	}
-	
-	public String getExtraData()
-	{
-		return extraData;
-	}
-	
-	public boolean hasExtraDataOnMessage()
-	{
-		return extraDataOnMessage;
 	}
 }

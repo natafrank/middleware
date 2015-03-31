@@ -11,13 +11,18 @@ import sistemaDistribuido.util.Escribano;
  */
 public abstract class Proceso extends SystemProcess{
 	protected MicroNucleo nucleo;
-
+	protected byte[] message;
 	/**
 	 * 
 	 */
 	public Proceso(Escribano esc){
 		super(Nucleo.nucleo,esc);
 		this.nucleo=Nucleo.nucleo;
+	}
+	
+	public void setMessage(byte[] message)
+	{
+		this.message = message;
 	}
 
 	/**

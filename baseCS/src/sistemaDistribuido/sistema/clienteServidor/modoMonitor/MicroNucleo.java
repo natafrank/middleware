@@ -6,9 +6,11 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageCreator;
-import sistemaDistribuido.util.Pausador;
+import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageReader;
+import sistemaDistribuido.sistema.clienteServidor.modoUsuario.Proceso;
 
 /**
  * 
@@ -16,10 +18,15 @@ import sistemaDistribuido.util.Pausador;
 public final class MicroNucleo extends MicroNucleoBase{
 	private static MicroNucleo nucleo=new MicroNucleo();
 	
-	//UI Messages (UIM).
-	private final static String UIM_ERROR_SOCKET      = "Error while creating Socket.";
-	private final static String UIM_ERROR_ADDRESS     = "Error while creating address.";
-	private final static String UIM_ERROR_SEND_PACKET = "Error while sending packet.";
+	//User Interface Messages (UIM).
+	private final static String UIM_ERROR_SOCKET         = "Error while creating Socket.";
+	private final static String UIM_ERROR_IP		     = "Error while creating ip.";
+	private final static String UIM_ERROR_RECEIVE_PACKET = "Error while receiving packet.";
+	private final static String UIM_AU					 = "Address Unknown";
+	private final static String UIM_TA					 = "Try Again";
+	
+	private HashMap<Integer, String[]> emitionTable = new HashMap<Integer, String[]>();
+	private HashMap<Integer, byte[]> receptionTable = new HashMap<Integer, byte[]>();
 
 	/**
 	 * 
@@ -40,19 +47,6 @@ public final class MicroNucleo extends MicroNucleoBase{
     simultaneamente a receiveFalso() al reescriir el atributo mensaje---*/
 	byte[] mensaje;
 	
-	public void sendFalso(int dest,byte[] message){
-	
-	}
-
-	public void receiveFalso(int addr,byte[] message)
-	{
-		
-	}
-	/*---------------------------------------------------------*/
-
-	/**
-	 * 
-	 */
 	protected boolean iniciarModulos(){
 		return true;
 	}
@@ -60,53 +54,43 @@ public final class MicroNucleo extends MicroNucleoBase{
 	/**
 	 * 
 	 */
-	protected void sendVerdadero(int dest,byte[] message){
+	protected void sendVerdadero(int dest,byte[] message)
+	{	
+		//Get ip and id from table.
+		String[] idIp = emitionTable.get(dest);
+		String ip;
+		int id;
 		
-		//lo siguiente aplica para la pr�ctica #2
-		ParMaquinaProceso pmp=dameDestinatarioDesdeInterfaz();
-		String ip = pmp.dameIP();
-		imprimeln("Enviando mensaje a IP="+ip+" ID="+pmp.dameID());
-		//suspenderProceso();   //esta invocacion depende de si se requiere bloquear al hilo de control invocador
+		if(idIp != null)
+		{
+			id = Integer.parseInt(idIp[0]);
+			ip = idIp[1];
+		}
+		else
+		{
+			ParMaquinaProceso pmp = dameDestinatarioDesdeInterfaz();
+			ip = pmp.dameIP();
+			id = pmp.dameID();
+			imprimeln("IP: " + ip + "\nID: " + id);
+		}
 		
-		//Package and sent the message.
-		DatagramSocket socket = null;
-		DatagramPacket packet;
-		InetAddress address;
-
+		MessageCreator.setDestiny(id, message);
+		MessageCreator.setOrigin(dameIdProceso(), message);
 		try
 		{
-			socket  = new DatagramSocket();
-			
-			//Get the addrerss (ip). take it form the text box or by dest.
-			if(!ip.equals(""))
-			{
-				address = InetAddress.getByName(ip);
-			}
-			else
-			{
-				address = InetAddress.getByName(MessageCreator.getAddress(dest));
-			}
-			
-			imprimeln("mensaje a enviar: " + new String(message));
-			packet  = new DatagramPacket(message, message.length, address, MessageCreator
-					.getPort(dest));
-			socket.send(packet);
-			socket.close();
-		}
-		catch (SocketException e)
-		{
-			e.printStackTrace();
-			imprimeln(UIM_ERROR_SOCKET);
+			DatagramPacket packet = new DatagramPacket(message, message.length, InetAddress
+					.getByName(ip), damePuertoRecepcion());
+			dameSocketEmision().send(packet);
 		}
 		catch (UnknownHostException e)
 		{
 			e.printStackTrace();
-			imprimeln(UIM_ERROR_ADDRESS);
+			imprimeln(UIM_ERROR_IP);
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
-			imprimeln(UIM_ERROR_SEND_PACKET);
+			imprimeln(UIM_ERROR_SOCKET);
 		}
 	}
 
@@ -115,34 +99,8 @@ public final class MicroNucleo extends MicroNucleoBase{
 	 */
 	protected void receiveVerdadero(int addr,byte[] message)
 	{
-		DatagramSocket socket = null;
-		DatagramPacket packet;
-		
-		//Get the port using the address that is the idServer.
-		int port = MessageCreator.getPort(addr);
-		
-		try
-		{
-			socket = new DatagramSocket(port);
-			packet = new DatagramPacket(message, message.length);
-			imprimeln("recibiendo");
-			socket.receive(packet);
-			imprimeln("recibido: " + new String(packet.getData()));
-			message = packet.getData();
-			socket.close();
-		}
-		catch (SocketException e)
-		{
-			e.printStackTrace();
-			imprimeln(UIM_ERROR_SOCKET);
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-			imprimeln(UIM_ERROR_SEND_PACKET);
-		}
-		Pausador.pausa(1000);
-		notificarHilos();
+		receptionTable.put(addr, message);
+		suspenderProceso();
 	}
 
 	/**
@@ -164,19 +122,79 @@ public final class MicroNucleo extends MicroNucleoBase{
 	}
 
 	/**
-	 * 
+	 * Thread for receive datagrams.
 	 */
-	public void run(){
-
-		while(seguirEsperandoDatagramas()){
-			/* Lo siguiente es reemplazable en la pr�ctica #2,
-			 * sin esto, en pr�ctica #1, seg�n el JRE, puede incrementar el uso de CPU
-			 */ 
-			try{
-				sleep(60000);
-			}catch(InterruptedException e){
-				System.out.println("InterruptedException");
+	public void run()
+	{
+		try
+		{
+			byte[] buffer = new byte[MessageCreator.MESSAGE_MAX_SIZE];
+			DatagramSocket socket = dameSocketRecepcion();
+			DatagramPacket packet = new DatagramPacket(buffer, buffer.length); 
+			
+			while(seguirEsperandoDatagramas())
+			{
+				imprimeln("Receiving messages...");
+				socket.receive(packet);
+				imprimeln("Message Received.");
+				//Read origin and destiny of message and check if the process is in the table.
+				int origin  = MessageReader.readIntFromMessage(buffer, MessageCreator.
+						MESSAGE_INDEX_ORIGIN);
+				int destiny = MessageReader.readIntFromMessage(buffer, MessageCreator.
+						MESSAGE_INDEX_DESTINY);
+				ParMaquinaProceso pmp=dameDestinatarioDesdeInterfaz();
+				String ip = pmp.dameIP();
+				
+				long[] allProcessIds = getAllProcessIDs();
+				boolean isLocalProcess = false;
+				
+				for(int i = 0; i < allProcessIds.length; i++)
+				{
+					if(allProcessIds[i] == destiny)
+					{
+						isLocalProcess = true;
+						break;
+					}
+				}
+				
+				if(isLocalProcess)
+				{
+					//Check if destiny is waiting to receive a message.
+					if(receptionTable.containsKey(destiny))
+					{
+						//Register the client.
+						emitionTable.put(origin, new String[]{Integer.toString(origin), ip});
+						
+						//Copy the message to the receiver.
+						receptionTable.put(destiny, buffer);
+						Proceso proceso = dameProcesoLocal(destiny);
+						proceso.setMessage(buffer);
+						reanudarProceso(proceso);
+					}
+					else
+					{
+						//Send TA.
+						imprimeln(UIM_TA);
+					}
+				}
+				else
+				{
+					//Send AU.
+					imprimeln(UIM_AU);
+				}
 			}
+			
+			socket.close();
+		}
+		catch (SocketException e1)
+		{
+			e1.printStackTrace();
+			imprimeln(UIM_ERROR_SOCKET);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			imprimeln(UIM_ERROR_RECEIVE_PACKET);
 		}
 	}
 }

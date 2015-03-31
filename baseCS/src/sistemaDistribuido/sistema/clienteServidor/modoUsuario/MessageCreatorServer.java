@@ -3,45 +3,36 @@ package sistemaDistribuido.sistema.clienteServidor.modoUsuario;
 public class MessageCreatorServer extends MessageCreator
 {
 	//CONSTANTS.
-	private final static int DATA_MAX_SIZE = 1016;
-	private final static int MESSAGE_INDEX_ID_SERVER = 0;
-	private final static int MESSAGE_INDEX_ID_CLIENT = 4;
-	private final static int MESSAGE_INDEX_DATA      = 8;
+	public final static int DATA_MAX_SIZE           = 1014;
+	public final static int MESSAGE_INDEX_DATA_SIZE = 8;
+	public final static int MESSAGE_INDEX_DATA      = 10;
 	
-	public MessageCreatorServer(int idClient, int idServer, String data)
+	private final static String ANSWER_ERROR_MESSAGE_TOO_LONG = "Error while creating answer.";
+	
+	private String data;
+	private short dataSize;
+	
+	public MessageCreatorServer(String data)
 	{
-		super(idClient, idServer, data);
+		this.data = data;
+		dataSize  = (short)data.length();
 	}
 	
 	public int createMessage()
 	{
 		//Check if data size doesn't overflow.
-		if(dataBytes.length > DATA_MAX_SIZE)
+		if(data.length() > DATA_MAX_SIZE)
 		{
 			//Error, data message too long.
+			dataSize = (short) ANSWER_ERROR_MESSAGE_TOO_LONG.length();
+			setShort(dataSize, message, MESSAGE_INDEX_DATA_SIZE);
+			setString(ANSWER_ERROR_MESSAGE_TOO_LONG, message, MESSAGE_INDEX_DATA);
 			return ERROR_MESSAGE_TOO_LONG;
 		}
 		else
 		{
-			byte[] aux = new byte[INT_BYTE_SIZE];
-			int i;
-			
-			//Get server id.
-			for(i = 0; i < INT_BYTE_SIZE; i++)
-			{
-				aux[(i-3)*-1] = (byte) (idServer >>> (i * 8));
-			}
-			System.arraycopy(aux, 0, message, MESSAGE_INDEX_ID_SERVER, INT_BYTE_SIZE);
-			
-			//Get client id.
-			for(i = 0; i < INT_BYTE_SIZE; i++)
-			{
-				aux[(i-3)*-1] = (byte) (idClient >>> (i * 8));
-			}
-			System.arraycopy(aux, 0, message, MESSAGE_INDEX_ID_CLIENT, INT_BYTE_SIZE);
-			
-			//Get data.
-			System.arraycopy(dataBytes, 0, message, MESSAGE_INDEX_DATA, dataBytes.length);
+			setShort(dataSize, message, MESSAGE_INDEX_DATA_SIZE);
+			setString(data, message, MESSAGE_INDEX_DATA);
 			
 			//Return success.
 			return MESSAGE_SUCCESSFULLY_CREATED;

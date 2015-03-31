@@ -11,11 +11,6 @@ public abstract class ServerOperationManager
 	private boolean parameter1Enabled;
 	private boolean parameter2Enabled;
 	
-	public ServerOperationManager(int idServer)
-	{
-		this.idServer = idServer; 
-	}
-	
 	public abstract String[] getOperations();
 	
 	public abstract String[] getFirstParameters();

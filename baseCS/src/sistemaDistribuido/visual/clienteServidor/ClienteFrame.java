@@ -4,6 +4,7 @@ import java.awt.Button;
 import java.awt.Choice;
 import java.awt.Label;
 import java.awt.Panel;
+import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -18,18 +19,24 @@ import sistemaDistribuido.sistema.clienteServidor.modoUsuario.ServerOperationMan
 
 public class ClienteFrame extends ProcesoFrame{
 	private static final long serialVersionUID=1;
-	private final static int HEIGHT = 500;
-	private final static int WIDTH  = 700;
+	private final static int HEIGHT = 400;
+	private final static int WIDTH  = 500;
 	
 	//Control variables.
 	private ProcesoCliente proc;
-	private ServerOperationManager serverOperationManager;
+	private FileServerOperationManager serverOperationManager;
 	private String[] operations;
 	
 	//Components.
 	private Choice choiceServer;
 	private Choice choiceOperation;
-	private Choice choiceParameter1, choiceParameter2;
+	private Choice fileName;
+	private Label lblWriter;
+	private Label lblOffset;
+	private Label lblLength;
+	private TextField txtWriter;
+	private TextField txtOffset;
+	private TextField txtLength;
 	private Button btnSolicitude;
 	
 	public ClienteFrame(MicroNucleoFrame frameNucleo){
@@ -50,23 +57,37 @@ public class ClienteFrame extends ProcesoFrame{
 	    }
 	     
 	    //Create components.
-	    choiceOperation  = new Choice();
-		choiceParameter1 = new Choice();
-		choiceParameter2 = new Choice();
-		btnSolicitude    = new Button("Solicitar");
+	    choiceOperation = new Choice();
+		fileName        = new Choice();
+		txtWriter       = new TextField();
+		txtOffset       = new TextField();
+		txtLength       = new TextField();
+		lblWriter		= new Label("Text:");
+		lblOffset		= new Label("Offset:");
+		lblLength		= new Label("Length:");
+		btnSolicitude   = new Button("Make Request");
 		btnSolicitude.addActionListener(new ManejadorSolicitud());
 		choiceOperation.setVisible(false);
-		choiceParameter1.setVisible(false);
-		choiceParameter2.setVisible(false);
+		fileName.setVisible(false);
+		lblLength.setVisible(false);
+		lblOffset.setVisible(false);
+		lblWriter.setVisible(false);
+		txtWriter.setVisible(false);
+		txtWriter.setColumns(40);
+		txtOffset.setVisible(false);
+		txtLength.setVisible(false);
 		btnSolicitude.setVisible(false);
 		
 		//Add components to panel.
 		p.add(choiceServer);
-		p.add(new Label("Operation:"));
 		p.add(choiceOperation);
-		p.add(new Label("Data:"));
-		p.add(choiceParameter1);
-		p.add(choiceParameter2);
+		p.add(fileName);
+		p.add(lblOffset);
+		p.add(txtOffset);
+		p.add(lblLength);
+		p.add(txtLength);
+		p.add(lblWriter);
+		p.add(txtWriter);
 		p.add(btnSolicitude);
 		
 		//Listener after select a server.
@@ -81,8 +102,7 @@ public class ClienteFrame extends ProcesoFrame{
 				{
 					if(selectedServer.equals("File Server"))
 					{
-						serverOperationManager = new FileServerOperationManager(
-								MessageCreator.ID_FILE_SERVER);
+						serverOperationManager = new FileServerOperationManager();
 					}
 					
 					//Clean and load the operations available for the server.
@@ -97,6 +117,18 @@ public class ClienteFrame extends ProcesoFrame{
 					choiceOperation.setVisible(true);
 					setSize(WIDTH, HEIGHT);
 				}
+				else
+				{
+					choiceOperation.setVisible(false);
+					fileName.setVisible(false);
+					lblLength.setVisible(false);
+					lblOffset.setVisible(false);
+					lblWriter.setVisible(false);
+					txtWriter.setVisible(false);
+					txtOffset.setVisible(false);
+					txtLength.setVisible(false);
+					btnSolicitude.setVisible(false);
+				}
 			}
 		});
 		
@@ -107,57 +139,83 @@ public class ClienteFrame extends ProcesoFrame{
 			@Override
 			public void itemStateChanged(ItemEvent e)
 			{
-				String operation = choiceOperation.getSelectedItem();
+				int operation = choiceOperation.getSelectedIndex();
 				
-				if(!operation.equals("Choose an operation"))
+				if(operation != 0)
 				{
-					serverOperationManager.setSelectedOperation(operation);
-					if(serverOperationManager.hasParametersEnabled())
+					//Clean and load the files.
+					fileName.removeAll();
+					String[] fileNames = serverOperationManager.getFileNames();
+					for(int i =0; i < fileNames.length; i++)
 					{
-						//Check parameter1.
-						if(serverOperationManager.isParameter1Enabled())
+						fileName.add(fileNames[i]);
+					}
+					switch(operation)
+					{
+						case FileServerOperationManager.CREATE:
 						{
-							choiceParameter1.removeAll();
-							String[] firstParameters = serverOperationManager.getFirstParameters();
-							for(int i = 0; i < firstParameters.length; i++)
-							{
-								choiceParameter1.add(firstParameters[i]);
-							}
-							choiceParameter1.setVisible(true);
-							setSize(WIDTH + 200, HEIGHT + 100);
-							
-							//Check parameter2.
-							if(serverOperationManager.isParameter2Enabled())
-							{
-								choiceParameter2.removeAll();
-								String[] secondParameters = serverOperationManager
-										.getSecondParameters();
-								for(int i = 0; i < secondParameters.length; i++)
-								{
-									choiceParameter2.add(secondParameters[i]);
-								}
-								choiceParameter2.setVisible(true);
-								setSize(WIDTH + 300, HEIGHT + 200);
-							}
-							else
-							{
-								choiceParameter2.setVisible(false);
-							}
+							fileName.setVisible(true);
+							lblLength.setVisible(false);
+							lblOffset.setVisible(false);
+							lblWriter.setVisible(false);
+							txtWriter.setVisible(false);
+							txtOffset.setVisible(false);
+							txtLength.setVisible(false);
+							btnSolicitude.setVisible(true);
+							setSize(WIDTH + 20, HEIGHT);
+							break;
 						}
-						else
+						case FileServerOperationManager.DELETE:
 						{
-							choiceParameter1.setVisible(false);
-							setSize(WIDTH, HEIGHT);
+							fileName.setVisible(true);
+							lblLength.setVisible(false);
+							lblOffset.setVisible(false);
+							lblWriter.setVisible(false);
+							txtWriter.setVisible(false);
+							txtOffset.setVisible(false);
+							txtLength.setVisible(false);
+							btnSolicitude.setVisible(true);
+							setSize(WIDTH + 20, HEIGHT);
+							break;
+						}
+						case FileServerOperationManager.READ:
+						{
+							fileName.setVisible(true);
+							lblLength.setVisible(true);
+							lblOffset.setVisible(true);
+							lblWriter.setVisible(false);
+							txtWriter.setVisible(false);
+							txtOffset.setVisible(true);
+							txtLength.setVisible(true);
+							btnSolicitude.setVisible(true);
+							setSize(WIDTH + 150, HEIGHT);
+							break;
+						}
+						case FileServerOperationManager.WRITE:
+						{
+							fileName.setVisible(true);
+							lblLength.setVisible(false);
+							lblOffset.setVisible(false);
+							lblWriter.setVisible(true);
+							txtWriter.setVisible(true);
+							txtOffset.setVisible(false);
+							txtLength.setVisible(false);
+							btnSolicitude.setVisible(true);
+							setSize(WIDTH + 350, HEIGHT);
+							break;
 						}
 					}
-					else
-					{
-						choiceParameter1.setVisible(false);
-						choiceParameter2.setVisible(false);
-						setSize(WIDTH, HEIGHT);
-					}
-					
-					btnSolicitude.setVisible(true);
+				}
+				else
+				{
+					fileName.setVisible(false);
+					lblLength.setVisible(false);
+					lblOffset.setVisible(false);
+					lblWriter.setVisible(false);
+					txtWriter.setVisible(false);
+					txtOffset.setVisible(false);
+					txtLength.setVisible(false);
+					btnSolicitude.setVisible(false);
 				}
 			}
 		});
@@ -168,32 +226,53 @@ public class ClienteFrame extends ProcesoFrame{
 	class ManejadorSolicitud implements ActionListener{
 		public void actionPerformed(ActionEvent e) {
 			String com=e.getActionCommand();
-			if (com.equals("Solicitar")){
+			if (com.equals("Make Request")){
 				btnSolicitude.setEnabled(false);
 				com=choiceOperation.getSelectedItem();
 				imprimeln("Solicitud a enviar: "+com);
-				//proc.
 				
-				//Set the message.
-				MessageCreatorClient messageCreatorClient = new MessageCreatorClient(Integer
-						.parseInt(dameIdProceso()), serverOperationManager.getIdServer(), 
-						(short)choiceOperation.getSelectedIndex(), choiceParameter1.getSelectedItem());
-				
-				//Trigger to check if has extra, and send it if it has.
-				if(choiceParameter2.isVisible())
+				MessageCreatorClient messageCreatorClient = null;
+				int operationCode = choiceOperation.getSelectedIndex();
+				switch(operationCode)
 				{
-					messageCreatorClient.setExtraData(choiceParameter2.getSelectedItem());
+					case FileServerOperationManager.CREATE:
+					{
+						messageCreatorClient = new MessageCreatorClient(
+								(short)FileServerOperationManager.CREATE, 
+								fileName.getSelectedItem());
+						break;
+					}
+					case FileServerOperationManager.DELETE:
+					{
+						messageCreatorClient = new MessageCreatorClient(
+								(short)FileServerOperationManager.DELETE, 
+								fileName.getSelectedItem());
+						break;
+					}
+					case FileServerOperationManager.READ:
+					{
+						messageCreatorClient = new MessageCreatorClient(
+								(short)FileServerOperationManager.READ, 
+								fileName.getSelectedItem(), Integer.parseInt(txtOffset.getText()),
+								Integer.parseInt(txtLength.getText()));
+						break;
+					}
+					case FileServerOperationManager.WRITE:
+					{
+						messageCreatorClient = new MessageCreatorClient(
+								(short)FileServerOperationManager.WRITE, 
+								fileName.getSelectedItem(), txtWriter.getText());
+						break;
+					}
 				}
 				
 				//Create and check Mesasge.
 				int messageCreationResult = messageCreatorClient.createMessage();
-				imprimeln("MI Mensaje a enviar: " + new String(messageCreatorClient.getMessage()));
 				if(messageCreationResult >= 0)
 				{
 					//Message created successfully.
 					//Set the message to the process ready to send.
 					proc.setMessage(messageCreatorClient.getMessage());
-					proc.setMessageCreatorClient(messageCreatorClient);
 					
 					//Resume the process.
 					Nucleo.reanudarProceso(proc);
@@ -207,6 +286,11 @@ public class ClienteFrame extends ProcesoFrame{
 						case MessageCreator.ERROR_MESSAGE_TOO_LONG:
 						{
 							imprimeln(MessageCreator.UIM_ERROR_MESSAGE_TOO_LONG);
+							break;
+						}
+						case MessageCreator.ERROR_MESSAGE_CREATION:
+						{
+							imprimeln(MessageCreator.UIM_ERROR_MESSAGE_CREATION);
 							break;
 						}
 					}

@@ -2,10 +2,7 @@ package sistemaDistribuido.sistema.clienteServidor.modoUsuario;
 
 public class FileServerOperationManager extends ServerOperationManager
 {
-	public FileServerOperationManager(int idServer)
-	{
-		super(idServer);
-	}
+
 
 	//OPERATIONS FOR EVERY SERVER.
 	//FILE SERVER.
@@ -18,7 +15,26 @@ public class FileServerOperationManager extends ServerOperationManager
 		"Write"
 	};
 	
-	private final static String[] PARAMETER1_FILE_SERVER = 
+	public final static int CREATE = 1;
+	public final static int DELETE = 2;
+	public final static int READ   = 3;
+	public final static int WRITE  = 4;
+	public final static String CHARACTER_ENCODING = "UTF-8";
+	
+	//UIM.
+	public final static String UIM_FILE_NOT_FOUND       = "File not found exception.";
+	public final static String UIM_IO_ERROR				= "Input/Output Error";
+	public final static String UIM_UNSUPPORTED_ENCODING = "Unsoppurted Encoding.";
+	public final static String UIM_FILE_CREATED_SUCCESS = "File created success.";
+	public final static String UIM_FILE_CREATED_FAILURE = "File created failure.";
+	public final static String UIM_FILE_DELETED_SUCCESS = "File deleted success.";
+	public final static String UIM_FILE_DELETED_FAILURE = "File deleted failure.";
+	public final static String UIM_FILE_READ_SUCCESS    = "File reading success.";
+	public final static String UIM_FILE_READ_FAILURE    = "File reading failure.";
+	public final static String UIM_FILE_WRITE_SUCCESS   = "File writing success.";
+	public final static String UIM_FILE_WRITE_FAILURE   = "File writing failure.";
+	
+	private final static String[] FILE_NAMES = 
 	{
 		"hola.txt",
 		"prueba.txt"
@@ -70,10 +86,9 @@ public class FileServerOperationManager extends ServerOperationManager
 		}
 	}
 
-	@Override
-	public String[] getFirstParameters()
+	public String[] getFileNames()
 	{
-		return PARAMETER1_FILE_SERVER;
+		return FILE_NAMES;
 	}
 
 	@Override
@@ -89,6 +104,12 @@ public class FileServerOperationManager extends ServerOperationManager
 		}
 		
 		//Return null in case of error.
+		return null;
+	}
+
+	@Override
+	public String[] getFirstParameters()
+	{
 		return null;
 	}
 }
