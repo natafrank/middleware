@@ -32,7 +32,7 @@ public class RPCFrame extends MicroNucleoFrame{
 			if (com.equals("Cliente")){
 				levantarProcesoFrame(new ClienteFrame(RPCFrame.this));
 			}
-			else if (com.equals("Servidor")){
+			else if (com.equals("Iniciar Servidor")){
 				levantarProcesoFrame(new ServidorFrame(RPCFrame.this));
 			}
 			else if (com.equals("Conector")){

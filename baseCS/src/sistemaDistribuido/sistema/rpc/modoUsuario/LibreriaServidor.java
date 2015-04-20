@@ -17,8 +17,28 @@ public class LibreriaServidor extends Libreria{
 	 */
 	protected void suma(){
 		//saca parametros de pila
-
+		
 		//devuelve valor izquierdo
+	}
+
+	@Override
+	protected void create()
+	{
+	}
+
+	@Override
+	protected void read()
+	{
+	}
+
+	@Override
+	protected void write()
+	{
+	}
+
+	@Override
+	protected void delete()
+	{
 	}
 
 }

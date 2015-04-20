@@ -7,7 +7,8 @@ import sistemaDistribuido.util.Escribano;
 /**
  * 
  */
-public class ProcesoCliente extends Proceso{
+public class ProcesoCliente extends Proceso
+{
 	private Libreria lib;
 
 	/**
@@ -23,33 +24,22 @@ public class ProcesoCliente extends Proceso{
 	/**
 	 * Programa Cliente
 	 */
-	public void run(){
-		int sum1,sum2,minuendo,sustraendo,multiplicando,multiplicador,dividendo,divisor;
-
-		sum1=8;
-		sum2=7;
-		minuendo=6;
-		sustraendo=5;
-		multiplicando=4;
-		multiplicador=4;
-		dividendo=2;
-		divisor=1;
-
+	public void run()
+	{
 		imprimeln("Proceso cliente en ejecucion.");
 		imprimeln("Esperando datos para continuar.");
 		Nucleo.suspenderProceso();
 		imprimeln("Salio de suspenderProceso");
+		
+		//Get the parameters and process the tasks.
 
-		int resultado;
-		resultado=lib.suma(sum1,sum2);
-		imprimeln("suma="+resultado);
-		resultado=lib.resta(minuendo,sustraendo);
-		imprimeln("diferencia="+resultado);
-		resultado=lib.multiplicacion(multiplicando,multiplicador);
-		imprimeln("multiplicacion="+resultado);
-		resultado=lib.division(dividendo,divisor);
-		imprimeln("cociente="+resultado);
+		
 
 		imprimeln("Fin del cliente.");
+	}
+	
+	public Libreria getLib()
+	{
+		return lib;
 	}
 }
