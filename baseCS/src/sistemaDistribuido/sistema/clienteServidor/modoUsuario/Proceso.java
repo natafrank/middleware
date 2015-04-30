@@ -4,6 +4,7 @@ package sistemaDistribuido.sistema.clienteServidor.modoUsuario;
 import microKernelBasedSystem.system.clientServer.userMode.threadPackage.SystemProcess;
 import sistemaDistribuido.sistema.clienteServidor.modoMonitor.Nucleo;
 import sistemaDistribuido.sistema.clienteServidor.modoMonitor.MicroNucleo;
+import sistemaDistribuido.sistema.rpc.modoUsuario.Libreria;
 import sistemaDistribuido.util.Escribano;
 
 /**
@@ -12,6 +13,7 @@ import sistemaDistribuido.util.Escribano;
 public abstract class Proceso extends SystemProcess{
 	protected MicroNucleo nucleo;
 	protected byte[] message;
+	protected Libreria library;
 	/**
 	 * 
 	 */
@@ -67,15 +69,25 @@ public abstract class Proceso extends SystemProcess{
 	}
 
 	/**
-	 * Actividad normal del proceso mientras está activo
+	 * Actividad normal del proceso mientras estï¿½ activo
 	 */
 	public void run(){
 	}
 
 	/**
-	 * Actividades a realizar tras recibir la señal de terminación del proceso
+	 * Actividades a realizar tras recibir la seï¿½al de terminaciï¿½n del proceso
 	 */
 	protected void shutdown(){
 		terminar();
+	}
+	
+	public byte[] getMessage()
+	{
+		return message;
+	}
+	
+	public Libreria getLibrary()
+	{
+		return library;
 	}
 }

@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.util.Stack;
 
 import sistemaDistribuido.sistema.clienteServidor.modoMonitor.Nucleo;
+import sistemaDistribuido.sistema.rpc.modoUsuario.Assembler;
 import sistemaDistribuido.sistema.rpc.modoUsuario.ProcesoCliente;
 import sistemaDistribuido.visual.clienteServidor.ProcesoFrame;
 
@@ -140,7 +141,20 @@ public class ClienteFrame extends ProcesoFrame{
 				
 				//WRITE.
 				parameters.push(fileNameWrite.getSelectedItem().getBytes());
-				//parameters.push()
+				parameters.push(bufferToWrite.getSelectedItem().getBytes());
+				parameters.push(Assembler.longToBytes(Long.valueOf(bytesToWrite.getSelectedItem())));
+				
+				//READ.
+				parameters.push(fileNameRead.getSelectedItem().getBytes());
+				long bytesToReadSelection = Long.valueOf(bytesToRead.getSelectedItem());
+				char[] bufferRead = new char[(int) bytesToReadSelection];
+				parameters.push(new String(bufferRead).getBytes());
+				parameters.push(Assembler.longToBytes(bytesToReadSelection));
+				parameters.push(Assembler.longToBytes
+						(Long.valueOf(startReadingPosition.getSelectedItem())));
+				
+				//DELETE.
+				parameters.push(fileNameDelete.getSelectedItem().getBytes());
 				
 				Nucleo.reanudarProceso(proc);
 			}

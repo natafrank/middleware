@@ -134,8 +134,10 @@ public final class MicroNucleo extends MicroNucleoBase{
 			
 			while(seguirEsperandoDatagramas())
 			{
+				
 				imprimeln("Receiving messages...");
 				socket.receive(packet);
+				
 				imprimeln("Message Received.");
 				//Read origin and destiny of message and check if the process is in the table.
 				int origin  = MessageReader.readIntFromMessage(buffer, MessageCreator.
@@ -168,7 +170,7 @@ public final class MicroNucleo extends MicroNucleoBase{
 						//Copy the message to the receiver.
 						receptionTable.put(destiny, buffer);
 						Proceso proceso = dameProcesoLocal(destiny);
-						proceso.setMessage(buffer);
+						proceso.getLibrary().setAnswer(buffer);
 						reanudarProceso(proceso);
 					}
 					else
@@ -182,8 +184,8 @@ public final class MicroNucleo extends MicroNucleoBase{
 					//Send AU.
 					imprimeln(UIM_AU);
 				}
+				
 			}
-			
 			socket.close();
 		}
 		catch (SocketException e1)

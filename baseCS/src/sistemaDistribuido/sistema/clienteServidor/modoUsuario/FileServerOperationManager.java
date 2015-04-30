@@ -21,6 +21,20 @@ public class FileServerOperationManager extends ServerOperationManager
 	public final static int WRITE  = 4;
 	public final static String CHARACTER_ENCODING = "UTF-8";
 	
+	public final static int ANSWER_LENGTH = 12;
+	
+	//SUCCESS CODES.
+	public final static int SUCCESS_CREATE_FILE = 1;
+	public final static int SUCCESS_READ_FILE   = 2;
+	public final static int SUCCESS_WRITE_FILE  = 3;
+	public final static int SUCCESS_DELETE_FILE = 4;
+	
+	//ERROR CODES.
+	public final static int ERROR_CREATE_FILE = -1;
+	public final static int ERROR_READ_FILE   = -2;
+	public final static int ERROR_WRITE_FILE  = -3;
+	public final static int ERROR_DELETE_FILE = -4;
+	
 	//UIM.
 	public final static String UIM_FILE_NOT_FOUND       = "File not found exception.";
 	public final static String UIM_IO_ERROR				= "Input/Output Error";
@@ -111,5 +125,13 @@ public class FileServerOperationManager extends ServerOperationManager
 	public String[] getFirstParameters()
 	{
 		return null;
+	}
+	
+	public static void cleanBuffer(byte[] buffer)
+	{
+		for(int i = 0; i < buffer.length; i++)
+		{
+			buffer[i] = 0;
+		}
 	}
 }

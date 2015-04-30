@@ -4,8 +4,9 @@ public abstract class MessageCreator
 {
 	//CONSTANTS.
 	public final static int MESSAGE_MAX_SIZE      = 1024;
-	protected final static int INT_BYTE_SIZE      = 4;
-	protected final static int SHORT_BYTE_SIZE    = 2;
+	public final static int LONG_BYTE_SIZE		  = 8;
+	public final static int INT_BYTE_SIZE         = 4;
+	public final static int SHORT_BYTE_SIZE       = 2;
 	public final static int MESSAGE_INDEX_ORIGIN  = 0;
 	public final static int MESSAGE_INDEX_DESTINY = 4;
 	
@@ -24,6 +25,16 @@ public abstract class MessageCreator
 	public byte[] getMessage()
 	{
 		return message;
+	}
+	
+	public static void setLong(long value, byte[] message, int position)
+	{
+		byte[] aux = new byte[LONG_BYTE_SIZE];
+		for(int i = 0; i < LONG_BYTE_SIZE; i++)
+		{
+			aux[(i-7)*-1] = (byte) (value >>> (i * 8));
+		}
+		System.arraycopy(aux, 0, message, position, LONG_BYTE_SIZE);
 	}
 	
 	public static void setInt(int value, byte[] message, int position)

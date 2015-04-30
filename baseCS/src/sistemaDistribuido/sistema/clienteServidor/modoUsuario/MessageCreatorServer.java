@@ -3,9 +3,10 @@ package sistemaDistribuido.sistema.clienteServidor.modoUsuario;
 public class MessageCreatorServer extends MessageCreator
 {
 	//CONSTANTS.
-	public final static int DATA_MAX_SIZE           = 1014;
-	public final static int MESSAGE_INDEX_DATA_SIZE = 8;
-	public final static int MESSAGE_INDEX_DATA      = 10;
+	public final static int DATA_MAX_SIZE               = 1014;
+	public final static int MESSAGE_INDEX_DATA_SIZE     = 8;
+	public final static int MESSAGE_INDEX_DATA          = 10;
+	public final static int MESSAGE_INDEX_SIMPLE_ANSWER = 8;
 	
 	private final static String ANSWER_ERROR_MESSAGE_TOO_LONG = "Error while creating answer.";
 	
