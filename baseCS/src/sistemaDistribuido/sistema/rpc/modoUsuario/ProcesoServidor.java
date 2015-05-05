@@ -1,21 +1,23 @@
 package sistemaDistribuido.sistema.rpc.modoUsuario;
 
-//import sistemaDistribuido.sistema.rpc.modoMonitor.RPC;   //para pr�ctica 4
 import sistemaDistribuido.sistema.clienteServidor.modoMonitor.Nucleo;
+import sistemaDistribuido.sistema.clienteServidor.modoMonitor.ParMaquinaProceso;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.FileServerOperationManager;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageCreator;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageCreatorClient;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageCreatorServer;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageReader;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.Proceso;
+import sistemaDistribuido.sistema.rpc.modoMonitor.RPC;
 import sistemaDistribuido.util.Escribano;
 
 /**
  * 
  */
 public class ProcesoServidor extends Proceso{
-	//private LibreriaServidor library;
+
 	private byte[] answer;
+	private int id;
 	/**
 	 * 
 	 */
@@ -23,20 +25,59 @@ public class ProcesoServidor extends Proceso{
 		super(esc);
 		library = new LibreriaServidor(esc, message);
 		answer = null;
+		id = dameID();
 		start();
 	}
 
 	/**
 	 * Resguardo del servidor
 	 */
+	
+	// SPECIFICATION OF FILE SERVER, VESRION 1.0
+	/*
+	 * Creates a new file with the specified name.
+	 *
+	int create(in char name[MAX_PATH]); 
+
+	/*
+	 * Deletes the file with the specified name.
+	 *
+	int delete(in char name[MAX_PATH]);
+
+	/*
+	 * Reads a number of bytes from the file with the specified name at the specified starting position
+	 * and returns those bytes in an array.
+	 *
+	int read(in char name[MAX_PATH], out char offset[], in long bytesToRead, in long startingPosition);
+
+	/*
+	 * Writes in the specified file a number of bytes from the incoming array.
+	 *
+	int write(in char name[MAX_PATH], in char buffer[], in long bytesToWrite);
+	*/
+	
 	public void run()
 	{
 		imprimeln("Proceso servidor en ejecucion.");
-		//idUnico=RPC.exportarInterfaz("FileServer", "3.1", asa)  //para pr�ctica 4
+		RPC.exportarInterfaz(Libreria.SERVER_NAME, Libreria.VERSION, new ParMaquinaProceso()
+		{
+			
+			@Override
+			public String dameIP()
+			{
+				return "127.0.0.1";
+			}
+			
+			@Override
+			public int dameID()
+			{
+				return id;
+			}
+		});
 
 		while(continuar())
 		{
-			Nucleo.receive(dameID(), library.answer);
+			Nucleo.receive(id, library.answer);
 
 			//Read the message and add the parameters to the stack.
 			short operationCode = MessageReader.readShortFromMessage(library.answer, MessageCreatorClient

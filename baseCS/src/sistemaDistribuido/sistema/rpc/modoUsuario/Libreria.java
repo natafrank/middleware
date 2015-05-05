@@ -9,6 +9,9 @@ import sistemaDistribuido.util.Escribano;
 
 public abstract class Libreria
 {
+	public final static String SERVER_NAME = "File Server";
+	public final static String VERSION	   = "1.0";
+	
 	/* Size for the origin, destiny, operation code and file name size.
 	 * 
 	 * 		origin          = 4 bytes.

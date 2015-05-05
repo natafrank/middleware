@@ -2,6 +2,7 @@ package sistemaDistribuido.sistema.rpc.modoMonitor;
 
 //import sistemaDistribuido.sistema.clienteServidor.modoMonitor.Nucleo;   //para práctica 4
 import sistemaDistribuido.sistema.clienteServidor.modoMonitor.ParMaquinaProceso;
+import sistemaDistribuido.sistema.rpc.modoUsuario.AsaId;
 import sistemaDistribuido.sistema.rpc.modoUsuario.ProgramaConector;
 
 public class RPC{
@@ -10,7 +11,8 @@ public class RPC{
 	/**
 	 * 
 	 */
-	public static void asignarConector(ProgramaConector con){
+	public static void asignarConector(ProgramaConector con)
+	{
 		conector=con;
 		conector.inicializar();
 	}
@@ -19,25 +21,44 @@ public class RPC{
 	 * Efectua la llamada de busqueda en el conector.
 	 * Regresa un dest para la llamada a send(dest,message).
 	 */
-	public static int importarInterfaz(String nombreServidor,String version){
-		//asa=conector.busqueda()
-		return 0;
+	public static int importarInterfaz(String nombreServidor,String version)
+	{
+		AsaId asaId = conector.busqueda(nombreServidor, version);
+		
+		if(asaId != null)
+		{
+			return Integer.parseInt(asaId.getId());
+		}
+		else
+		{
+			return -1;
+		}
 	}
-
+	
 	/**
 	 * Efectua la llamada a registro en el conector.
 	 * Regresa una identificacionUnica para el deregistro.
 	 */
-	public static int exportarInterfaz(String nombreServidor,String version,ParMaquinaProceso asa){
-		//conector.registro(nombreServidor,version,asa);
-		return 0;
+	public static int exportarInterfaz(String nombreServidor,String version,ParMaquinaProceso asa)
+	{
+		return conector.registro(nombreServidor,version,asa);
 	}
 
 	/**
 	 * Efectua la llamada a deregistro en el conector.
 	 * Regresa el status del deregistro, true significa llevado a cabo.
 	 */
-	public static boolean deregistrarInterfaz(String nombreServidor,String version,int identificacionUnica){
+	public static boolean deregistrarInterfaz(String nombreServidor,String version,
+			int identificacionUnica)
+	{
 		return true;
+	}
+	
+	/**
+	 * Returns the asa.
+	 */
+	public static AsaId getAsaFromId(int id)
+	{
+		return conector.getAsaFromId(id);	
 	}
 }

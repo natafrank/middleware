@@ -11,6 +11,8 @@ import java.util.HashMap;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageCreator;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageReader;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.Proceso;
+import sistemaDistribuido.sistema.rpc.modoMonitor.RPC;
+import sistemaDistribuido.sistema.rpc.modoUsuario.AsaId;
 
 /**
  * 
@@ -68,9 +70,21 @@ public final class MicroNucleo extends MicroNucleoBase{
 		}
 		else
 		{
-			ParMaquinaProceso pmp = dameDestinatarioDesdeInterfaz();
-			ip = pmp.dameIP();
-			id = pmp.dameID();
+			AsaId asaId = RPC.getAsaFromId(dest);
+			
+			if(asaId != null)
+			{
+				ParMaquinaProceso pmp = asaId.getAsa();
+				ip = pmp.dameIP();
+				id = pmp.dameID();
+			}
+			else
+			{
+				//Error.
+				ip = "";
+				id = -1;
+			}
+			
 			imprimeln("IP: " + ip + "\nID: " + id);
 		}
 		
@@ -144,6 +158,8 @@ public final class MicroNucleo extends MicroNucleoBase{
 						MESSAGE_INDEX_ORIGIN);
 				int destiny = MessageReader.readIntFromMessage(buffer, MessageCreator.
 						MESSAGE_INDEX_DESTINY);
+				
+				
 				ParMaquinaProceso pmp=dameDestinatarioDesdeInterfaz();
 				String ip = pmp.dameIP();
 				

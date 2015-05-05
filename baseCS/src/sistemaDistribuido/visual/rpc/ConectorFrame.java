@@ -1,7 +1,9 @@
 package sistemaDistribuido.visual.rpc;
 
+import sistemaDistribuido.sistema.clienteServidor.modoMonitor.ParMaquinaProceso;
 import sistemaDistribuido.sistema.rpc.modoUsuario.ProgramaConector;
 import sistemaDistribuido.sistema.rpc.modoMonitor.RPC;
+
 import java.awt.Frame;
 import java.awt.Panel;
 import java.awt.BorderLayout;
@@ -193,9 +195,28 @@ public class ConectorFrame extends Frame implements DespleganteConexiones,Window
   /**
   * 
   */
-  private void agregarDesdeInterfazGrafica(String nombreServidor,String version,String ip,String idProceso){
+  private void agregarDesdeInterfazGrafica(String nombreServidor,String version,String ip,
+		  String idProceso){
     agregar(nombreServidor,version,ip,idProceso);   //devuelve un contador secuencial de agregados a la interfaz gr�fica
-    //aqui se debe hacer el registro en el programa conector
+   
+    //Export the interface.
+    final String asaIp = ip;
+    final int asaId = Integer.parseInt(idProceso);
+    RPC.exportarInterfaz(nombreServidor, version, new ParMaquinaProceso()
+	{
+		
+		@Override
+		public String dameIP()
+		{
+			return asaIp;
+		}
+		
+		@Override
+		public int dameID()
+		{
+			return asaId;
+		}
+	});
   }
   
   /**
