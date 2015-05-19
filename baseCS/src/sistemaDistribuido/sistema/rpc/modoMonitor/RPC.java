@@ -1,6 +1,7 @@
+//Francisco Natanael Ortiz MartÃ­nez.
 package sistemaDistribuido.sistema.rpc.modoMonitor;
 
-//import sistemaDistribuido.sistema.clienteServidor.modoMonitor.Nucleo;   //para práctica 4
+//import sistemaDistribuido.sistema.clienteServidor.modoMonitor.Nucleo;   //para prï¿½ctica 4
 import sistemaDistribuido.sistema.clienteServidor.modoMonitor.ParMaquinaProceso;
 import sistemaDistribuido.sistema.rpc.modoUsuario.AsaId;
 import sistemaDistribuido.sistema.rpc.modoUsuario.ProgramaConector;

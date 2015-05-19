@@ -1,3 +1,4 @@
+//Francisco Natanael Ortiz Martínez.
 package sistemaDistribuido.sistema.clienteServidor.modoUsuario;
 
 public abstract class ServerOperationManager

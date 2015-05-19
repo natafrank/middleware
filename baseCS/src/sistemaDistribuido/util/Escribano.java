@@ -1,3 +1,4 @@
+//Francisco Natanael Ortiz Martínez.
 package sistemaDistribuido.util;
 
 import microKernelBasedSystem.util.Writer;

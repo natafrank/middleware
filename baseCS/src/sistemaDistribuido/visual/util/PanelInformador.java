@@ -1,3 +1,4 @@
+//Francisco Natanael Ortiz Martínez.
 package sistemaDistribuido.visual.util;
 
 import java.awt.Panel;

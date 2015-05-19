@@ -1,3 +1,4 @@
+//Francisco Natanael Ortiz Martínez.
 package sistemaDistribuido.sistema.rpc.modoUsuario;
 
 //import sistemaDistribuido.sistema.rpc.modoMonitor.RPC;  //para pr�ctica 4

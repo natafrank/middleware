@@ -1,14 +1,16 @@
+//Francisco Natanael Ortiz Martínez.
 package sistemaDistribuido.sistema.clienteServidor.modoUsuario;
 
 public abstract class MessageCreator
 {
 	//CONSTANTS.
-	public final static int MESSAGE_MAX_SIZE      = 1024;
-	public final static int LONG_BYTE_SIZE		  = 8;
-	public final static int INT_BYTE_SIZE         = 4;
-	public final static int SHORT_BYTE_SIZE       = 2;
-	public final static int MESSAGE_INDEX_ORIGIN  = 0;
-	public final static int MESSAGE_INDEX_DESTINY = 4;
+	public final static int MESSAGE_MAX_SIZE      	   = 1024;
+	public final static int LONG_BYTE_SIZE		  	   = 8;
+	public final static int INT_BYTE_SIZE        	   = 4;
+	public final static int SHORT_BYTE_SIZE       	   = 2;
+	public final static int MESSAGE_INDEX_ORIGIN  	   = 0;
+	public final static int MESSAGE_INDEX_DESTINY 	   = 4;
+	public final static int MESSAGE_INDEX_MESSAGE_TYPE = 4;
 	
 	//RETURN CODES.
 	public final static int MESSAGE_SUCCESSFULLY_CREATED = 0;

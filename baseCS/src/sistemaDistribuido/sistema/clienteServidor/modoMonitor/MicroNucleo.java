@@ -1,3 +1,4 @@
+//Francisco Natanael Ortiz Martínez.
 package sistemaDistribuido.sistema.clienteServidor.modoMonitor;
 
 import java.io.IOException;
@@ -11,8 +12,6 @@ import java.util.HashMap;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageCreator;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.MessageReader;
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.Proceso;
-import sistemaDistribuido.sistema.rpc.modoMonitor.RPC;
-import sistemaDistribuido.sistema.rpc.modoUsuario.AsaId;
 
 /**
  * 
@@ -26,6 +25,10 @@ public final class MicroNucleo extends MicroNucleoBase{
 	private final static String UIM_ERROR_RECEIVE_PACKET = "Error while receiving packet.";
 	private final static String UIM_AU					 = "Address Unknown";
 	private final static String UIM_TA					 = "Try Again";
+	
+	//MESSAGES FORMS.
+	private final static int AU = -10;
+	private final static int TA = -11;
 	
 	private HashMap<Integer, String[]> emitionTable = new HashMap<Integer, String[]>();
 	private HashMap<Integer, byte[]> receptionTable = new HashMap<Integer, byte[]>();
@@ -70,7 +73,7 @@ public final class MicroNucleo extends MicroNucleoBase{
 		}
 		else
 		{
-			AsaId asaId = RPC.getAsaFromId(dest);
+			/*AsaId asaId = RPC.getAsaFromId(dest);
 			
 			if(asaId != null)
 			{
@@ -83,7 +86,11 @@ public final class MicroNucleo extends MicroNucleoBase{
 				//Error.
 				ip = "";
 				id = -1;
-			}
+			}*/
+			
+			ParMaquinaProceso pmp = dameDestinatarioDesdeInterfaz();
+			ip = pmp.dameIP();
+			id = pmp.dameID();
 			
 			imprimeln("IP: " + ip + "\nID: " + id);
 		}
@@ -144,7 +151,10 @@ public final class MicroNucleo extends MicroNucleoBase{
 		{
 			byte[] buffer = new byte[MessageCreator.MESSAGE_MAX_SIZE];
 			DatagramSocket socket = dameSocketRecepcion();
-			DatagramPacket packet = new DatagramPacket(buffer, buffer.length); 
+			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+			
+			//Message mail control.
+			byte[] savedMessage = null;
 			
 			while(seguirEsperandoDatagramas())
 			{
@@ -153,54 +163,109 @@ public final class MicroNucleo extends MicroNucleoBase{
 				socket.receive(packet);
 				
 				imprimeln("Message Received.");
-				//Read origin and destiny of message and check if the process is in the table.
-				int origin  = MessageReader.readIntFromMessage(buffer, MessageCreator.
-						MESSAGE_INDEX_ORIGIN);
-				int destiny = MessageReader.readIntFromMessage(buffer, MessageCreator.
-						MESSAGE_INDEX_DESTINY);
 				
+				//Check if the message is a try again, if it is, then re-send the saved message.
+				int messageType = MessageReader.readIntFromMessage(buffer, MessageCreator
+						.MESSAGE_INDEX_MESSAGE_TYPE);
 				
-				ParMaquinaProceso pmp=dameDestinatarioDesdeInterfaz();
-				String ip = pmp.dameIP();
-				
-				long[] allProcessIds = getAllProcessIDs();
-				boolean isLocalProcess = false;
-				
-				for(int i = 0; i < allProcessIds.length; i++)
+				if(messageType == TA)
 				{
-					if(allProcessIds[i] == destiny)
+					//Wait 5 seconds and then send the saved message.
+					final int TIME_WAIT_RESEND = 5000;//5 seconds.
+					try
 					{
-						isLocalProcess = true;
-						break;
+						sleep(TIME_WAIT_RESEND);
 					}
-				}
-				
-				if(isLocalProcess)
-				{
-					//Check if destiny is waiting to receive a message.
-					if(receptionTable.containsKey(destiny))
+					catch (InterruptedException e)
 					{
-						//Register the client.
-						emitionTable.put(origin, new String[]{Integer.toString(origin), ip});
-						
-						//Copy the message to the receiver.
-						receptionTable.put(destiny, buffer);
-						Proceso proceso = dameProcesoLocal(destiny);
-						proceso.getLibrary().setAnswer(buffer);
-						reanudarProceso(proceso);
+						e.printStackTrace();
+						imprimeln("Error while waiting to resned the message.");
 					}
-					else
-					{
-						//Send TA.
-						imprimeln(UIM_TA);
-					}
+					
+					DatagramPacket packetAnswer = new DatagramPacket(savedMessage, savedMessage
+							.length);
+					dameSocketEmision().send(packetAnswer);
 				}
 				else
 				{
-					//Send AU.
-					imprimeln(UIM_AU);
-				}
-				
+					//Read origin and destiny of message and check if the process is in the table.
+					int origin  = MessageReader.readIntFromMessage(buffer, MessageCreator.
+							MESSAGE_INDEX_ORIGIN);
+					int destiny = MessageReader.readIntFromMessage(buffer, MessageCreator.
+							MESSAGE_INDEX_DESTINY);
+					
+					ParMaquinaProceso pmp=dameDestinatarioDesdeInterfaz();
+					String ip = pmp.dameIP();
+					
+					long[] allProcessIds = getAllProcessIDs();
+					boolean isLocalProcess = false;
+					
+					for(int i = 0; i < allProcessIds.length; i++)
+					{
+						if(allProcessIds[i] == destiny)
+						{
+							isLocalProcess = true;
+							break;
+						}
+					}
+		
+					//Trigger to wait the process if it's not started.
+					if(!isLocalProcess)
+					{
+						try
+						{
+							final int TIME_WAIT_START = 10000;//10 seconds.
+							sleep(TIME_WAIT_START);
+						}
+						catch (InterruptedException e)
+						{
+							e.printStackTrace();
+							imprimeln("Error while waiting for the process to start.");
+						}
+					}
+					
+					if(isLocalProcess)
+					{	
+						//Check if destiny is waiting to receive a message.
+						if(receptionTable.containsKey(destiny))
+						{
+							//Register the client.
+							emitionTable.put(origin, new String[]{Integer.toString(origin), ip});
+							
+							//Copy the message to the receiver.
+							receptionTable.put(destiny, buffer);
+							Proceso proceso = dameProcesoLocal(destiny);
+							//proceso.getLibrary().setAnswer(buffer);
+							proceso.setMessage(buffer);
+							reanudarProceso(proceso);
+						}
+						else
+						{
+							//Save the message to try again later.
+							savedMessage = buffer;
+							
+							//Send TA.
+							imprimeln(UIM_TA);
+							byte[] message = new byte[MessageCreator.MESSAGE_MAX_SIZE];
+							MessageCreator.setDestiny(destiny, message);
+							MessageCreator.setInt(TA, message, MessageCreator
+									.MESSAGE_INDEX_MESSAGE_TYPE);
+							DatagramPacket packetAnswer = new DatagramPacket(message, message
+									.length);
+							dameSocketRecepcion().send(packetAnswer);
+						}
+					}
+					else
+					{
+						//Send AU.
+						imprimeln(UIM_AU);
+						byte[] message = new byte[MessageCreator.MESSAGE_MAX_SIZE];
+						MessageCreator.setDestiny(destiny, message);
+						MessageCreator.setInt(AU, message, MessageCreator.MESSAGE_INDEX_MESSAGE_TYPE);
+						DatagramPacket packetAnswer = new DatagramPacket(message, message.length);
+						dameSocketRecepcion().send(packetAnswer);
+					}
+				}	
 			}
 			socket.close();
 		}

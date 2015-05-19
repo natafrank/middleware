@@ -1,3 +1,4 @@
+//Francisco Natanael Ortiz Martínez.
 package sistemaDistribuido.visual.clienteServidor;
 
 import sistemaDistribuido.sistema.clienteServidor.modoUsuario.ProcesoServidor;

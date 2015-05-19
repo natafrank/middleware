@@ -1,3 +1,4 @@
+//Francisco Natanael Ortiz Martínez.
 package sistemaDistribuido.visual.rpc;
 
 import sistemaDistribuido.sistema.rpc.modoUsuario.ProcesoServidor;

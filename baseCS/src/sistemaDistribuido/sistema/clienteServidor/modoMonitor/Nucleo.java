@@ -1,3 +1,4 @@
+//Francisco Natanael Ortiz Martínez.
 package sistemaDistribuido.sistema.clienteServidor.modoMonitor;
 
 import sistemaDistribuido.sistema.clienteServidor.modoMonitor.ParMaquinaProceso;
