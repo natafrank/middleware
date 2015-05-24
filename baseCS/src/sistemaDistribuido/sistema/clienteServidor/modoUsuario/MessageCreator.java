@@ -4,18 +4,29 @@ package sistemaDistribuido.sistema.clienteServidor.modoUsuario;
 public abstract class MessageCreator
 {
 	//CONSTANTS.
-	public final static int MESSAGE_MAX_SIZE      	   = 1024;
-	public final static int LONG_BYTE_SIZE		  	   = 8;
-	public final static int INT_BYTE_SIZE        	   = 4;
-	public final static int SHORT_BYTE_SIZE       	   = 2;
-	public final static int MESSAGE_INDEX_ORIGIN  	   = 0;
-	public final static int MESSAGE_INDEX_DESTINY 	   = 4;
-	public final static int MESSAGE_INDEX_MESSAGE_TYPE = 4;
+	public final static int MESSAGE_MAX_SIZE      	  		      = 1024;
+	public final static int LONG_BYTE_SIZE		  	  			  = 8;
+	public final static int INT_BYTE_SIZE        	  			  = 4;
+	public final static int SHORT_BYTE_SIZE       	  			  = 2;
+	public final static int MESSAGE_INDEX_ORIGIN  	   			  = 0;
+	public final static int MESSAGE_INDEX_DESTINY 	  			  = 4;
+	public final static int MESSAGE_INDEX_MESSAGE_TYPE 			  = 4;
+	
+	//MUTUAL EXCLUTION.
+	public final static int CRITICAL_SECTION_FREE 				  = 1;
+	public final static int CRITICAL_SECTION_BUSSY 				  = 2;
+	public final static int CRITICAL_SECTION_FILE_SERVER		  = 3;
+	public final static int CRITICAL_SECTION_HTTP_SERVER          = 4;
+	public final static int MESSAGE_INDEX_REQUEST_TASK		      = 8;
+	public final static int MESSAGE_INDEX_CRITICAL_SECTION        = 12;
+	public final static int MESSAGE_INDEX_CRITICAL_SECTION_STATUS = 16;
+	public final static int CRITICAL_SECTION_SET_FREE_TASK		  = 1;
+	public final static int CRTICIAL_SECTION_REQUEST_TASK		  = 2;
 	
 	//RETURN CODES.
-	public final static int MESSAGE_SUCCESSFULLY_CREATED = 0;
-	public final static int ERROR_MESSAGE_TOO_LONG       = -1;
-	public final static int ERROR_MESSAGE_CREATION       = -2;
+	public final static int MESSAGE_SUCCESSFULLY_CREATED 		  = 0;
+	public final static int ERROR_MESSAGE_TOO_LONG      	      = -1;
+	public final static int ERROR_MESSAGE_CREATION                = -2;
 
 	//UI Messages (UIM).
 	public final static String UIM_ERROR_MESSAGE_TOO_LONG = "Error while creating message "

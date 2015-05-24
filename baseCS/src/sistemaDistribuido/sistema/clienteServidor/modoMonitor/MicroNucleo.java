@@ -91,9 +91,9 @@ public final class MicroNucleo extends MicroNucleoBase{
 			ParMaquinaProceso pmp = dameDestinatarioDesdeInterfaz();
 			ip = pmp.dameIP();
 			id = pmp.dameID();
-			
-			imprimeln("IP: " + ip + "\nID: " + id);
 		}
+		
+		imprimeln("IP: " + ip + "\nID: " + id);
 		
 		MessageCreator.setDestiny(id, message);
 		MessageCreator.setOrigin(dameIdProceso(), message);
